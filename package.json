@@ -13,7 +13,7 @@
     "url": "git://sixsteps.com/efa/eventric-store-mongodb.git"
   },
   "scripts": {
-    "prepublish": "node_modules/.bin/coffee -c socketio_remote_service.coffee"
+    "prepublish": "node_modules/.bin/coffee -c mongodb_event_store.coffee"
   },
   "dependencies": {
     "mongodb": "*"
