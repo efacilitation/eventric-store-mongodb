@@ -1,0 +1,1 @@
+## eventric MongoDB EventStore Adapter
