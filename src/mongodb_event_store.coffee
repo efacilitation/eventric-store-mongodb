@@ -1,4 +1,3 @@
-# TODO actually this should not know anything about aggregates and events, we need a `DomainEventRepository` for that, dont we?
 MongoClient = require('mongodb').MongoClient
 
 class MongoDBEventStore
@@ -10,11 +9,9 @@ class MongoDBEventStore
 
     MongoClient.connect 'mongodb://127.0.0.1:27017/events', (err, db) =>
       if err
-        console.log 'MongoDB connection failed'
         callback? err, null
         return
 
-      console.log 'MongoDB connected'
       @db = db
       callback? null
 
@@ -48,4 +45,4 @@ class MongoDBEventStore
           callback null, items
 
 
-module.exports = MongoDBEventStore
+module.exports = new MongoDBEventStore
