@@ -17,7 +17,7 @@ class MongoDBEventStore
 
 
   save: (domainEvent, callback) ->
-    @db.collection domainEvent.aggregate.name, (err, collection) ->
+    @db.collection domainEvent.context, (err, collection) ->
       return callback err, null if err
 
       collection.insert domainEvent, (err, doc) ->
@@ -26,14 +26,14 @@ class MongoDBEventStore
         callback null
 
 
-  find: ([aggregateName, query, projection]..., callback) ->
+  find: ([contextName, query, projection]..., callback) ->
     if not query
       err = new Error 'Missing query'
       callback err, null
       return
     projection = {} unless projection
 
-    @db.collection aggregateName, (err, collection) =>
+    @db.collection contextName, (err, collection) =>
       return callback err, null if err
 
       collection.find query, projection, (err, cursor) =>
