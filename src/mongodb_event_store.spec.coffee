@@ -6,13 +6,12 @@ describe 'MongoDB EventStore Adapter', ->
   saveErr = null
   domainEvent =
     name: 'doSomething'
-    aggregate:
-      name: 'OurAggregate'
+    context: 'whatever'
 
   beforeEach (done) ->
     mongoDBEventStore = require './mongodb_event_store'
     mongoDBEventStore.initialize (err) ->
-      mongoDBEventStore.db.collection 'OurAggregate', (err, collection) ->
+      mongoDBEventStore.db.collection 'whatever', (err, collection) ->
         collection.remove {}, ->
           mongoDBEventStore.save domainEvent, (err) ->
             saveErr = err
@@ -30,7 +29,7 @@ describe 'MongoDB EventStore Adapter', ->
 
   describe '#find', ->
     it 'should find the stored DomainEvent', (done) ->
-      mongoDBEventStore.find 'OurAggregate', {}, (err, docs) ->
+      mongoDBEventStore.find 'whatever', {}, (err, docs) ->
         expect(docs).to.deep.equal [
           domainEvent
         ]
