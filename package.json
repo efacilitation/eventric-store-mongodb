@@ -1,6 +1,6 @@
 {
   "name": "eventric-store-mongodb",
-  "description": "eventric MongoDB EventStore Adapter",
+  "description": "eventric MongoDB Store Adapter",
   "url": "http://eventric.org",
   "keywords": [
     "eventric",
@@ -13,10 +13,10 @@
     "type": "git",
     "url": "https://github.com/efacilitation/eventric-store-mongodb.git"
   },
-  "main": "dist/mongodb_event_store.js",
+  "main": "dist/mongodb_store.js",
   "scripts": {
     "test": "node_modules/.bin/coffeegulp spec",
-    "prepublish": "node_modules/.bin/coffee -o dist -c src/mongodb_event_store.coffee"
+    "prepublish": "node_modules/.bin/coffee -o dist -c src/mongodb_store.coffee"
   },
   "dependencies": {
     "mongodb": "*"
@@ -29,6 +29,9 @@
     "gulp-util": "*",
     "gulp-mocha": "*",
     "gulp-watch": "*",
-    "coffeegulp": "*"
+    "coffeegulp": "*",
+    "sinon": "*",
+    "sinon-chai": "*",
+    "mockery": "*"
   }
 }
