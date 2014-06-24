@@ -12,7 +12,7 @@
 * `port` The Port to which the MongoDb should connect (default: `27017`)
 * `database` The name of the Database to which MongoDb should connect (default: `eventric`)
 * `schema` The schema which we use to connect (default: `mongodb://`)
-* `dbInstace` Already initialized mongo.Db (default: null), wont connect at all if provided
+* `dbInstance` Already initialized mongo.Db (default: null), wont connect at all if provided
 
 
 `callback(error)`
