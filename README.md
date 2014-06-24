@@ -4,14 +4,32 @@
 ## API
 
 
+### initialize(options, callback)
+
+`options{}` Object with options
+
+* `host` The Host to which the MongoDb should connect (default: `127.0.0.1`)
+* `port` The Port to which the MongoDb should connect (default: `27017`)
+* `database` The name of the Database to which MongoDb should connect (default: `eventric`)
+* `schema` The schema which we use to connect (default: `mongodb://`)
+
+
+`callback(error)`
+
+* `error` null or Error if one happened
+
+
+
 ### save(collectionName, document, callback)
 
 `collectionName` Name of the collection where the given document gets stored into
 
 `document` The object to be stored
 
-`callback` Optional callback parameter with first argument an error if one happened and as second parameter the stored document in an array
+`callback(error, docs)`
 
+* `error` null or Error if one happened
+* `docs` The stored document in an array
 
 
 ### find(collectionName, query, projection, callback)
@@ -22,7 +40,20 @@
 
 `projection` Optional
 
-`callback` Callback with first argument an error if one happened and as second parameter the found documents
+`callback(error, docs)`
+
+* `error` null or Error if one happened
+* `docs` The documents found
+
+
+### collection(collectionName, callback)
+
+`collectionName` The collection to be returned
+
+`callback(error, collection)`
+
+* `error` null or Error if one happened
+* `collection` MongoDb Collection
 
 
 

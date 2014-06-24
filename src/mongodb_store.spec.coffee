@@ -5,7 +5,8 @@ sandbox   = sinon.sandbox.create()
 sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-MongoClient = require('mongodb').MongoClient
+mongodb = require('mongodb')
+MongoClient = mongodb.MongoClient
 
 describe 'MongoDB Store Adapter', ->
   mongoDbStore = null
@@ -69,3 +70,11 @@ describe 'MongoDB Store Adapter', ->
               savedDocs[0]
             ]
             done()
+
+
+    describe '#collection', ->
+      it 'should callback with the collection', (done) ->
+        mongoDbStore.collection 'someCollection', (err, collection) ->
+          expect(collection).to.be.an.instanceof mongodb.Collection
+          expect(collection.collectionName).to.equal 'someCollection'
+          done()
