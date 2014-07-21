@@ -72,9 +72,9 @@ describe 'MongoDB Store Adapter', ->
             done()
 
 
-    describe '#collection', ->
+    describe '#getProjectionStore', ->
       it 'should callback with the collection', (done) ->
-        mongoDbStore.collection 'someCollection', (err, collection) ->
+        mongoDbStore.getProjectionStore 'someCollection', (err, collection) ->
           expect(collection).to.be.an.instanceof mongodb.Collection
           expect(collection.collectionName).to.equal 'someCollection'
           done()

@@ -47,14 +47,22 @@
 * `docs` The documents found
 
 
-### collection(collectionName, callback)
+### getProjectionStore(projectionName, callback)
 
-`collectionName` The collection to be returned
+callbacks with a mongodb collection which can be used for a projection
 
-`callback(error, collection)`
+`projectionName` Name of the Projection for which a store should be returned
+
+`callback(error, projectionStore)`
 
 * `error` null or Error if one happened
-* `collection` MongoDb Collection
+* `projectionStore` MongoDb Collection
+
+
+### getStoreName()
+
+Returns the string `mongodb`
+
 
 
 

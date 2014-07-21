@@ -31,7 +31,7 @@ class MongoDBStore
 
 
   save: (collectionName, doc, callback) ->
-    @collection collectionName, (err, collection) =>
+    @db.collection collectionName, (err, collection) =>
       return callback err, null if err
 
       collection.insert doc, callback
@@ -44,15 +44,19 @@ class MongoDBStore
       return
     projection = {} unless projection
 
-    @collection collectionName, (err, collection) =>
+    @db.collection collectionName, (err, collection) =>
       collection.find query, projection, (err, cursor) =>
         return callback err, null if err
 
         cursor.toArray callback
 
 
-  collection: (collectionName, callback) ->
-    @db.collection collectionName, callback
+  getStoreName: ->
+    'mongodb'
+
+
+  getProjectionStore: (projectionName, callback) ->
+    @db.collection projectionName, callback
 
 
 module.exports = new MongoDBStore
