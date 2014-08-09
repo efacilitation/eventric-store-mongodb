@@ -1,10 +1,12 @@
-## eventric MongoDB EventStore Adapter [![Build Status](https://travis-ci.org/efacilitation/eventric-store-mongodb.svg?branch=master)](https://travis-ci.org/efacilitation/eventric-store-mongodb)
+## eventric MongoDB Store Adapter [![Build Status](https://travis-ci.org/efacilitation/eventric-store-mongodb.svg?branch=master)](https://travis-ci.org/efacilitation/eventric-store-mongodb)
 
 
 ## API
 
 
-### initialize(options, callback)
+### initialize(contextName, options, callback)
+
+`contextName` String Name of the context for which the store is responsible
 
 `options{}` Object with options
 
@@ -20,48 +22,85 @@
 * `error` null or Error if one happened
 
 
+### saveDomainEvent(domainEvent, callback)
 
-### save(collectionName, document, callback)
+`domainEvent` The DomainEvent to be stored
 
-`collectionName` Name of the collection where the given document gets stored into
-
-`document` The object to be stored
-
-`callback(error, docs)`
+`callback(error, domainEvents)`
 
 * `error` null or Error if one happened
-* `docs` The stored document in an array
+* `domainEvents` The stored domainEvents in an array
 
 
-### find(collectionName, query, projection, callback)
+### findAllDomainEvents(callback)
 
-`collectionName` Name of the collection where the find searches
+Finds all DomainEvents in the Context Domain Event Store
 
-`query` Query parameter, more documentation is [here](http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#find)
-
-`projection` Optional
-
-`callback(error, docs)`
+`callback(error, domainEvents)`
 
 * `error` null or Error if one happened
-* `docs` The documents found
+* `domainEvents` The domainEvents found
+
+
+### findDomainEventsByName(domainEventName, callback)
+
+Finds DomainEvents with the given Name in the Context Domain Event Store
+
+`name` String Name of the DomainEvent
+
+`callback(error, domainEvents)`
+
+* `error` null or Error if one happened
+* `domainEvents` The domainEvents found
+
+
+### findDomainEventsByAggregateId(aggregateId, callback)
+
+Finds DomainEvents with the given AggregateId in the Context Domain Event Store
+
+`aggregateId` String Id of the Aggregate
+
+`callback(error, domainEvents)`
+
+* `error` null or Error if one happened
+* `domainEvents` The domainEvents found
+
+
+### findDomainEventsByAggregateName(aggregateName, callback)
+
+Finds DomainEvents with the given AggregateName in the Context Domain Event Store
+
+`aggregateName` String Name of the Aggregate
+
+`callback(error, domainEvents)`
+
+* `error` null or Error if one happened
+* `domainEvents` The domainEvents found
+
 
 
 ### getProjectionStore(projectionName, callback)
 
 callbacks with a mongodb collection which can be used for a projection
 
-`projectionName` Name of the Projection for which a store should be returned
+`projectionName` Name of the Projection for which a projectionStore should be returned
 
 `callback(error, projectionStore)`
 
 * `error` null or Error if one happened
-* `projectionStore` MongoDb Collection
+* `projectionStore` MongoDb Collection Projection Store
 
 
-### getStoreName()
+### clearProjectionStore(projectionName, callback) ->
 
-Returns the string `mongodb`
+clears the projectionStore with the given name
+
+`projectionName` Name of the Projection which should be cleared
+
+`callback(error, result)`
+
+* `error` null or Error if one happened
+* `result` Result of the dropCollection call
 
 
 

@@ -8,8 +8,10 @@ class MongoDBStore
     database: 'eventric'
 
 
-  initialize: ([options]..., callback=->) ->
+  initialize: (@_contextName, [options]..., callback=->) ->
     @_defaults (options ?= {}), @_optionDefaults
+    @_domainEventsCollectionName = "#{@_contextName}.domain_events"
+    @_projectionCollectionName   = "#{@_contextName}.projections"
 
     if options.dbInstance
       @db = options.dbInstance
@@ -30,33 +32,46 @@ class MongoDBStore
       options[key] = optionDefaults[key]
 
 
-  save: (collectionName, doc, callback) ->
-    @db.collection collectionName, (err, collection) =>
+  saveDomainEvent: (domainEvent, callback) ->
+    @db.collection @_domainEventsCollectionName, (err, collection) =>
       return callback err, null if err
 
-      collection.insert doc, callback
+      collection.insert domainEvent, callback
 
 
-  find: ([collectionName, query, projection]..., callback) ->
-    if not query
-      err = new Error 'Missing query'
-      callback err, null
-      return
-    projection = {} unless projection
+  findAllDomainEvents: (callback) ->
+    query = {}
+    @_find query, callback
 
-    @db.collection collectionName, (err, collection) =>
-      collection.find query, projection, (err, cursor) =>
+
+  findDomainEventsByName: (name, callback) ->
+    query = 'name': name
+    @_find query, callback
+
+
+  findDomainEventsByAggregateId: (aggregateId, callback) ->
+    query = 'aggregate.id': aggregateId
+    @_find query, callback
+
+
+  findDomainEventsByAggregateName: (aggregateName, callback) ->
+    query = 'aggregate.name': aggregateName
+    @_find query, callback
+
+
+  _find: (query, callback) ->
+    @db.collection @_domainEventsCollectionName, (err, collection) =>
+      collection.find query, (err, cursor) =>
         return callback err, null if err
-
         cursor.toArray callback
 
 
   getProjectionStore: (projectionName, callback) ->
-    @db.collection projectionName, callback
+    @db.collection "#{@_projectionCollectionName}.#{projectionName}", callback
 
 
   clearProjectionStore: (projectionName, callback) ->
-    @db.dropCollection projectionName, (err, result) ->
+    @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (err, result) ->
       callback null, result
 
 
