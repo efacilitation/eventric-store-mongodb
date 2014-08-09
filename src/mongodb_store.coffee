@@ -75,4 +75,4 @@ class MongoDBStore
       callback null, result
 
 
-module.exports = new MongoDBStore
+module.exports = MongoDBStore
