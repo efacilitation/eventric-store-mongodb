@@ -34,7 +34,7 @@
 
 ### findAllDomainEvents(callback)
 
-Finds all DomainEvents in the Context Domain Event Store
+Finds all DomainEvents in the Store
 
 `callback(error, domainEvents)`
 
@@ -44,9 +44,9 @@ Finds all DomainEvents in the Context Domain Event Store
 
 ### findDomainEventsByName(domainEventName, callback)
 
-Finds DomainEvents with the given Name in the Context Domain Event Store
+Finds DomainEvents with the given Name in Store
 
-`name` String Name of the DomainEvent
+`name` String|Array Name, or array of names, of the DomainEvent
 
 `callback(error, domainEvents)`
 
@@ -56,9 +56,9 @@ Finds DomainEvents with the given Name in the Context Domain Event Store
 
 ### findDomainEventsByAggregateId(aggregateId, callback)
 
-Finds DomainEvents with the given AggregateId in the Context Domain Event Store
+Finds DomainEvents with the given AggregateId in Store
 
-`aggregateId` String Id of the Aggregate
+`aggregateId` String|Array Id, or array of ids, of the Aggregate
 
 `callback(error, domainEvents)`
 
@@ -68,9 +68,9 @@ Finds DomainEvents with the given AggregateId in the Context Domain Event Store
 
 ### findDomainEventsByAggregateName(aggregateName, callback)
 
-Finds DomainEvents with the given AggregateName in the Context Domain Event Store
+Finds DomainEvents with the given AggregateName in the Store
 
-`aggregateName` String Name of the Aggregate
+`aggregateName` String|Array Name, or array of names, of the Aggregate
 
 `callback(error, domainEvents)`
 
