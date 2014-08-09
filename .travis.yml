@@ -2,8 +2,8 @@ language: node_js
 node_js:
 - '0.10'
 services:
-  - mongodb
+- mongodb
 notifications:
   hipchat:
     rooms:
-      secure: TmchKM4mxd2Xabtz4k4p7BXa2+qU0URUm1pU7gxTsUV1ewCHk6oZAMRkiAOAE1L3976SkaCeQT5Yocm4EPObYl8ILgxmZD5W+UyDA4fWSHtOkJuUoNl1Xmbn9qS11xyWjECnekJGOXBI2eJA9z/sUNG7Em9Ij6JfttS7MKzl4k0=
+      secure: N2kTt4ErNsWEd58A1EuRL15QXwolGMsj6olENcOB/bupdJRdIVK4TCBRZxo6KSEmoTZ5QMhFUSIST9UFYZhZBxgUGW46oLCOYAaPsarjXI/furf01c3xIceUJubUcXQH1rMIaNmRuOZXQpsp4tU0OoMpODIc8Zhk1WctTaRGsqg=
