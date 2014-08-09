@@ -12,7 +12,8 @@ describe 'MongoDB Store Adapter', ->
   mongoDbStore = null
 
   before ->
-    mongoDbStore = require './mongodb_store'
+    MongoDbStore = require './mongodb_store'
+    mongoDbStore = new MongoDbStore
 
 
   afterEach ->
