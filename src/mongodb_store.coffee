@@ -51,12 +51,13 @@ class MongoDBStore
         cursor.toArray callback
 
 
-  getStoreName: ->
-    'mongodb'
-
-
   getProjectionStore: (projectionName, callback) ->
     @db.collection projectionName, callback
+
+
+  clearProjectionStore: (projectionName, callback) ->
+    @db.dropCollection projectionName, (err, result) ->
+      callback null, result
 
 
 module.exports = new MongoDBStore

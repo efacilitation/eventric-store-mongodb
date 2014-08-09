@@ -31,7 +31,7 @@ describe 'MongoDB Store Adapter', ->
 
 
   describe 'given we got no mongo.dbInstance', ->
-
+    options = null
     before (done) ->
       options =
         database: '__eventric_tests'
@@ -78,3 +78,14 @@ describe 'MongoDB Store Adapter', ->
           expect(collection).to.be.an.instanceof mongodb.Collection
           expect(collection.collectionName).to.equal 'someCollection'
           done()
+
+
+    describe '#clearProjectionStore', ->
+      it 'should callback after removing', (done) ->
+        collectionName = 'someCollection'
+        mongoDbStore.clearProjectionStore collectionName, ->
+          mongoDbStore.db.collection('system.namespaces').find(
+            name: "#{options.database}.#{collectionName}"
+          ).toArray (err, items) ->
+            expect(items.length).to.equal 0
+            done()
