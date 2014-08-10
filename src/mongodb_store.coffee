@@ -10,8 +10,8 @@ class MongoDBStore
 
   initialize: (@_contextName, [options]..., callback=->) ->
     @_defaults (options ?= {}), @_optionDefaults
-    @_domainEventsCollectionName = "#{@_contextName}.domain_events"
-    @_projectionCollectionName   = "#{@_contextName}.projections"
+    @_domainEventsCollectionName = "#{@_contextName}.DomainEvents"
+    @_projectionCollectionName   = "#{@_contextName}.Projections"
 
     if options.dbInstance
       @db = options.dbInstance
