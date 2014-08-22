@@ -137,6 +137,23 @@ describe 'MongoDB Store Adapter', ->
               done()
 
 
+        describe '#findDomainEventsByNameAndAggregateId', ->
+          it 'should find the previously saved domainevent', (done) ->
+            mongoDbStore.findDomainEventsByNameAndAggregateId 'SomethingHappened', 23, (err, domainEvents) ->
+              expect(domainEvents).to.deep.equal [
+                domainEvent
+              ]
+              done()
+
+
+          it 'should find the previously saved domainevent', (done) ->
+            mongoDbStore.findDomainEventsByNameAndAggregateId ['SomethingHappened'], [23], (err, domainEvents) ->
+              expect(domainEvents).to.deep.equal [
+                domainEvent
+              ]
+              done()
+
+
     describe 'projection stores', ->
 
       describe '#getProjectionStore', ->

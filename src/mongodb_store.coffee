@@ -62,6 +62,15 @@ class MongoDBStore
     @_find query, callback
 
 
+  findDomainEventsByNameAndAggregateId: (names, aggregateIds, callback) ->
+    names = [names] if names not instanceof Array
+    aggregateIds = [aggregateIds] if aggregateIds not instanceof Array
+    query =
+      'name': $in: names
+      'aggregate.id': $in: aggregateIds
+    @_find query, callback
+
+
   _find: (query, callback) ->
     @db.collection @_domainEventsCollectionName, (err, collection) =>
       collection.find query, (err, cursor) =>
