@@ -8,10 +8,10 @@ class MongoDBStore
     database: 'eventric'
 
 
-  initialize: (@_contextName, [options]..., callback=->) ->
+  initialize: (@_context, [options]..., callback=->) ->
     @_defaults (options ?= {}), @_optionDefaults
-    @_domainEventsCollectionName = "#{@_contextName}.DomainEvents"
-    @_projectionCollectionName   = "#{@_contextName}.Projection"
+    @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
+    @_projectionCollectionName   = "#{@_context.name}.Projection"
 
     if options.dbInstance
       @db = options.dbInstance
