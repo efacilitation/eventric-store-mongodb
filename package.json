@@ -13,23 +13,25 @@
     "type": "git",
     "url": "https://github.com/efacilitation/eventric-store-mongodb.git"
   },
-  "main": "dist/mongodb_store.js",
+  "main": "build/src/mongodb_store.js",
   "scripts": {
-    "test": "node_modules/.bin/coffeegulp spec",
-    "prepublish": "node_modules/.bin/coffee -o dist -c src/mongodb_store.coffee"
+    "test": "node_modules/.bin/gulp spec",
+    "prepublish": "node_modules/.bin/gulp build"
   },
   "dependencies": {
     "mongodb": "*"
   },
   "devDependencies": {
+    "del": "*",
+    "run-sequence": "*",
     "coffee-script": "*",
     "chai": "*",
     "gulp": "*",
-    "gulp-grep-stream": "*",
+    "gulp-coffee": "*",
     "gulp-util": "*",
     "gulp-mocha": "*",
     "gulp-watch": "*",
-    "coffeegulp": "*",
+    "gulp-bump": "*",
     "sinon": "*",
     "sinon-chai": "*",
     "mockery": "*"

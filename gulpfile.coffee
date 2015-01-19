@@ -1,8 +1,4 @@
-gulp   = require 'gulp'
-gutil  = require 'gulp-util'
-grep   = require 'gulp-grep-stream'
-mocha  = require 'gulp-mocha'
-watch  = require 'gulp-watch'
+gulp = require 'gulp'
 
 gulp.on 'err', (e) ->
 gulp.on 'task_err', (e) ->
@@ -10,23 +6,13 @@ gulp.on 'task_err', (e) ->
     gutil.log e
     process.exit 1
 
-gulp.task 'spec', ->
-  gulp.src('src/*.coffee')
-    .pipe(mocha())
+gulp.task 'watch', ->
+  gulp.watch [
+    'src/*.coffee'
+  ], [
+    'spec'
+  ]
 
-gulp.task 'default', ->
-  gulp.src("src/*.coffee",
-    read: false
-  ).pipe watch(
-    emit: "all"
-  , (files) ->
-    files
-      .pipe(grep("**/*.spec.*"))
-      .pipe(mocha(reporter: "spec")
-        .on "error", (err) ->
-          console.log err.stack  unless /tests? failed/.test(err.stack)
-          return
-      )
-    return
-  )
-  return
+require('./gulp/build')(gulp)
+require('./gulp/spec')(gulp)
+require('./gulp/bump')(gulp)
