@@ -32,11 +32,15 @@ class MongoDBStore
       options[key] = optionDefaults[key]
 
 
-  saveDomainEvent: (domainEvent, callback) ->
+  saveDomainEvent: (domainEvent) ->  new Promise (resolve, reject) =>
     @db.collection @_domainEventsCollectionName, (err, collection) =>
-      return callback err, null if err
+      if err
+        return reject err
 
-      collection.insert domainEvent, callback
+      collection.insert domainEvent, (err, result) ->
+        if err
+          return reject err
+        resolve result
 
 
   findAllDomainEvents: (callback) ->
@@ -78,13 +82,20 @@ class MongoDBStore
         cursor.toArray callback
 
 
-  getProjectionStore: (projectionName, callback) ->
-    @db.collection "#{@_projectionCollectionName}.#{projectionName}", callback
+  getProjectionStore: (projectionName) ->  new Promise (resolve, reject) =>
+    @db.collection "#{@_projectionCollectionName}.#{projectionName}", (err, collection) ->
+      if err
+        return reject err
+
+      resolve collection
 
 
-  clearProjectionStore: (projectionName, callback) ->
+  clearProjectionStore: (projectionName) ->  new Promise (resolve, reject) =>
     @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (err, result) ->
-      callback null, result
+      if err
+        return reject err
+
+      resolve result
 
 
 module.exports = MongoDBStore

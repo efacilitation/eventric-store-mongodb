@@ -27,7 +27,7 @@ describe 'MongoDB Store Adapter', ->
         sandbox.spy MongoClient, 'connect'
         options =
           dbInstance: sandbox.stub()
-        mongoDbStore.initialize 'exampleContext', options
+        mongoDbStore.initialize name: 'exampleContext', options
         .then ->
           expect(MongoClient.connect).to.not.have.been.called
           done()
@@ -45,7 +45,7 @@ describe 'MongoDB Store Adapter', ->
       options =
         database: '__eventric_tests'
       sandbox.spy MongoClient, 'connect'
-      mongoDbStore.initialize 'exampleContext', options
+      mongoDbStore.initialize name: 'exampleContext', options
 
 
     beforeEach (done) ->
@@ -59,23 +59,20 @@ describe 'MongoDB Store Adapter', ->
 
     describe '#initialize', ->
       it 'should call the MongoClient.connect with the correct options', ->
-
         expect(MongoClient.connect).to.have.been.calledWith 'mongodb://127.0.0.1:27017/__eventric_tests'
 
 
     describe 'domain events', ->
       describe '#saveDomainEvent', ->
-        it 'should save the given doc', (done) ->
-          mongoDbStore.saveDomainEvent domainEvent, (err, domainEvents) ->
-            expect(err).to.be.null
+        it 'should save the given doc', ->
+          mongoDbStore.saveDomainEvent domainEvent
+          .then (domainEvents) ->
             expect(domainEvents[0]._id).to.be.ok
-            done()
 
 
       describe 'find', ->
-        beforeEach (done) ->
-          mongoDbStore.saveDomainEvent domainEvent, ->
-            done()
+        beforeEach ->
+          mongoDbStore.saveDomainEvent domainEvent
 
 
         describe '#findAllDomainEvents', ->
@@ -158,15 +155,23 @@ describe 'MongoDB Store Adapter', ->
     describe 'projection stores', ->
 
       describe '#getProjectionStore', ->
-        it 'should callback with the collection', (done) ->
-          mongoDbStore.getProjectionStore 'exampleProjection', (err, collection) ->
+        it 'should callback with the collection', ->
+          mongoDbStore.getProjectionStore 'exampleProjection'
+          .then (collection) ->
             expect(collection).to.be.an.instanceof mongodb.Collection
-            done()
 
 
       describe '#clearProjectionStore', ->
+        beforeEach (done) ->
+          mongoDbStore.getProjectionStore 'exampleProjection'
+          .then (projectionStore) ->
+            projectionStore.insert domainEvent, ->
+              done()
+
+
         it 'should callback after removing', (done) ->
-          mongoDbStore.clearProjectionStore 'exampleProjection', ->
+          mongoDbStore.clearProjectionStore 'exampleProjection'
+          .then ->
             mongoDbStore.db.collection('system.namespaces').find().toArray (err, items) ->
-              expect(items.length).to.equal 0
+              expect(items.length).to.equal 1
               done()
