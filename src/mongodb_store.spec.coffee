@@ -1,3 +1,4 @@
+require('es6-promise').polyfill()
 chai      = require 'chai'
 expect    = chai.expect
 sinon     = require 'sinon'
@@ -26,7 +27,8 @@ describe 'MongoDB Store Adapter', ->
         sandbox.spy MongoClient, 'connect'
         options =
           dbInstance: sandbox.stub()
-        mongoDbStore.initialize 'exampleContext', options, ->
+        mongoDbStore.initialize 'exampleContext', options
+        .then ->
           expect(MongoClient.connect).to.not.have.been.called
           done()
 
@@ -39,12 +41,11 @@ describe 'MongoDB Store Adapter', ->
         id: 23
         name: 'Example'
 
-    before (done) ->
+    before ->
       options =
         database: '__eventric_tests'
       sandbox.spy MongoClient, 'connect'
-      mongoDbStore.initialize 'exampleContext', options, (err) ->
-        done()
+      mongoDbStore.initialize 'exampleContext', options
 
 
     beforeEach (done) ->

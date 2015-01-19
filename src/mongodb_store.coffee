@@ -8,22 +8,22 @@ class MongoDBStore
     database: 'eventric'
 
 
-  initialize: (@_context, [options]..., callback=->) ->
+  initialize: (@_context, [options]...) ->  new Promise (resolve, reject) =>
     @_defaults (options ?= {}), @_optionDefaults
     @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
     @_projectionCollectionName   = "#{@_context.name}.Projection"
 
     if options.dbInstance
       @db = options.dbInstance
-      callback null
-      return
+      return resolve()
 
     connectUri = "#{options.schema}#{options.host}:#{options.port}/#{options.database}"
     MongoClient.connect connectUri, (err, db) =>
-      return callback err, null if err
+      if err
+        return reject err
 
       @db = db
-      callback null
+      resolve()
 
 
   _defaults: (options, optionDefaults) ->
