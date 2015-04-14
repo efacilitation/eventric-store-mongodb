@@ -67,7 +67,7 @@ describe 'MongoDB Store Adapter', ->
         it 'should save the given doc', ->
           mongoDbStore.saveDomainEvent domainEvent
           .then (domainEvents) ->
-            expect(domainEvents[0]._id).to.be.ok
+            expect(domainEvents.ops[0]._id).to.be.ok
 
 
       describe 'find', ->
