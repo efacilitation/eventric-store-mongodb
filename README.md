@@ -119,5 +119,5 @@ npm install
 Execute specs and watcher
 
 ```
-gulp
+gulp watch
 ```
