@@ -6,4 +6,4 @@ services:
 notifications:
   hipchat:
     rooms:
-      secure: N2kTt4ErNsWEd58A1EuRL15QXwolGMsj6olENcOB/bupdJRdIVK4TCBRZxo6KSEmoTZ5QMhFUSIST9UFYZhZBxgUGW46oLCOYAaPsarjXI/furf01c3xIceUJubUcXQH1rMIaNmRuOZXQpsp4tU0OoMpODIc8Zhk1WctTaRGsqg=
+      secure: jGv6Orzvef10ztMARs2orDAqPa0Uq2UhLU1ucHql1cFY2cYD0RqdVZBA6oUfOHbRh5N8jLli3inUyIxhiqcbMQUxZ/9NItd8BMTU2FoWvFqiX91rwpy2Qb3A3pO7to0FA3l5yhBlWjPlVxTsg0uFA3eS9sj1sd2MHaR+6PJnCAk=
