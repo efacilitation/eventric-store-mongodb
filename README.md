@@ -32,21 +32,11 @@
 * `domainEvents` The stored domainEvents in an array
 
 
-### findAllDomainEvents(callback)
-
-Finds all DomainEvents in the Store
-
-`callback(error, domainEvents)`
-
-* `error` null or Error if one happened
-* `domainEvents` The domainEvents found
-
-
 ### findDomainEventsByName(domainEventName, callback)
 
 Finds DomainEvents with the given Name in Store
 
-`name` String|Array Name, or array of names, of the DomainEvent
+`domainEventName` String|Array Name, or array of names, of the DomainEvent
 
 `callback(error, domainEvents)`
 
@@ -66,11 +56,13 @@ Finds DomainEvents with the given AggregateId in Store
 * `domainEvents` The domainEvents found
 
 
-### findDomainEventsByAggregateName(aggregateName, callback)
+### findDomainEventsByNameAndAggregateId(domainEventName, aggregateId, callback)
 
 Finds DomainEvents with the given AggregateName in the Store
 
-`aggregateName` String|Array Name, or array of names, of the Aggregate
+`domainEventName` String|Array Name, or array of names, of the DomainEvent
+
+`aggregateId` String|Array Id, or array of ids, of the Aggregate
 
 `callback(error, domainEvents)`
 
