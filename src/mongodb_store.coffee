@@ -33,7 +33,7 @@ class MongoDBStore
 
 
   saveDomainEvent: (domainEvent) ->  new Promise (resolve, reject) =>
-    @db.collection @_domainEventsCollectionName, (err, collection) =>
+    @db.collection @_domainEventsCollectionName, (err, collection) ->
       if err
         return reject err
 
@@ -65,8 +65,8 @@ class MongoDBStore
 
 
   _find: (query, callback) ->
-    @db.collection @_domainEventsCollectionName, (err, collection) =>
-      collection.find query, (err, cursor) =>
+    @db.collection @_domainEventsCollectionName, (err, collection) ->
+      collection.find query, (err, cursor) ->
         return callback err, null if err
         cursor.toArray callback
 
@@ -81,9 +81,8 @@ class MongoDBStore
 
   clearProjectionStore: (projectionName) ->  new Promise (resolve, reject) =>
     @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (err, result) ->
-      if err
+      if err and err.message isnt 'ns not found'
         return reject err
-
       resolve result
 
 
