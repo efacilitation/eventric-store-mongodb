@@ -8,22 +8,21 @@ class MongoDBStore
     database: 'eventric'
 
 
-  initialize: (@_context, [options]...) ->  new Promise (resolve, reject) =>
-    @_defaults (options ?= {}), @_optionDefaults
-    @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
-    @_projectionCollectionName   = "#{@_context.name}.Projection"
+  initialize: (@_context, [options]...) ->
+    new Promise (resolve) =>
+      @_defaults (options ?= {}), @_optionDefaults
+      @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
+      @_projectionCollectionName   = "#{@_context.name}.Projection"
 
-    if options.dbInstance
-      @db = options.dbInstance
-      return resolve()
+      if options.dbInstance
+        @db = options.dbInstance
+        return resolve()
 
-    connectUri = "#{options.schema}#{options.host}:#{options.port}/#{options.database}"
-    MongoClient.connect connectUri, (err, db) =>
-      if err
-        return reject err
-
-      @db = db
-      resolve()
+      connectUri = "#{options.schema}#{options.host}:#{options.port}/#{options.database}"
+      MongoClient.connect connectUri
+      .then (db) =>
+        @db = db
+        resolve()
 
 
   _defaults: (options, optionDefaults) ->
@@ -32,17 +31,13 @@ class MongoDBStore
       options[key] = optionDefaults[key]
 
 
-  saveDomainEvent: (domainEvent) ->  new Promise (resolve, reject) =>
-    @db.collection @_domainEventsCollectionName, (err, collection) ->
-      if err
-        return reject err
-
-      collection.insert domainEvent, (err, result) ->
-        if err
-          return reject err
-        resolve result
+  saveDomainEvent: (domainEvent) ->
+    @_getCollection @_domainEventsCollectionName
+    .then (collection) ->
+      collection.insert domainEvent
 
 
+  # TODO: remove this callback mess everywhere
   findDomainEventsByName: (names, callback) ->
     names = [names] if names not instanceof Array
     query = 'name': $in: names
@@ -65,25 +60,31 @@ class MongoDBStore
 
 
   _find: (query, callback) ->
-    @db.collection @_domainEventsCollectionName, (err, collection) ->
-      collection.find query, (err, cursor) ->
-        return callback err, null if err
-        cursor.toArray callback
+    @_getCollection @_domainEventsCollectionName
+    .then (collection) ->
+      collection.find(query).toArray()
+      .then (results) ->
+        callback null, results
 
 
-  getProjectionStore: (projectionName) ->  new Promise (resolve, reject) =>
-    @db.collection "#{@_projectionCollectionName}.#{projectionName}", (err, collection) ->
-      if err
-        return reject err
+  _getCollection: (collectionName) ->
+    new Promise (resolve, reject) =>
+      @db.collection collectionName, (error, collection) ->
+        if error
+          return reject error
+        resolve collection
 
-      resolve collection
+
+  getProjectionStore: (projectionName) ->
+    @_getCollection "#{@_projectionCollectionName}.#{projectionName}"
 
 
-  clearProjectionStore: (projectionName) ->  new Promise (resolve, reject) =>
-    @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (err, result) ->
-      if err and err.message isnt 'ns not found'
-        return reject err
-      resolve result
+  clearProjectionStore: (projectionName) ->
+    new Promise (resolve, reject) =>
+      @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (error, result) ->
+        if error and error.message isnt 'ns not found'
+          return reject error
+        resolve result
 
 
 module.exports = MongoDBStore

@@ -25,14 +25,13 @@ describe 'MongoDB Store Adapter', ->
 
     describe '#initialize', ->
 
-      it 'should not call MongoClient.connect', (done) ->
+      it 'should not call MongoClient.connect', ->
         sandbox.spy MongoClient, 'connect'
         options =
           dbInstance: sandbox.stub()
         mongoDbStore.initialize name: 'exampleContext', options
         .then ->
           expect(MongoClient.connect).to.not.have.been.called
-          done()
 
 
   describe 'given no mongo.dbInstance', ->
@@ -51,9 +50,8 @@ describe 'MongoDB Store Adapter', ->
       mongoDbStore.initialize name: 'exampleContext', options
 
 
-    beforeEach (done) ->
-      mongoDbStore.db.dropDatabase ->
-        done()
+    beforeEach ->
+      mongoDbStore.db.dropDatabase()
 
 
     after ->
@@ -61,6 +59,7 @@ describe 'MongoDB Store Adapter', ->
 
 
     describe '#initialize', ->
+
       it 'should call the MongoClient.connect with the correct options', ->
         expect(MongoClient.connect).to.have.been.calledWith 'mongodb://127.0.0.1:27017/eventric_store_mongodb_specs'
 
@@ -79,16 +78,16 @@ describe 'MongoDB Store Adapter', ->
         mongoDbStore.saveDomainEvent domainEvent
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByName 'SomethingHappened', (err, domainEvents) ->
+      it 'should find the previously saved domain event given the name as string', (done) ->
+        mongoDbStore.findDomainEventsByName 'SomethingHappened', (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
           done()
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByName ['SomethingHappened'], (err, domainEvents) ->
+      it 'should find the previously saved domain event given the name as array', (done) ->
+        mongoDbStore.findDomainEventsByName ['SomethingHappened'], (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
@@ -101,16 +100,16 @@ describe 'MongoDB Store Adapter', ->
         mongoDbStore.saveDomainEvent domainEvent
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByAggregateId 23, (err, domainEvents) ->
+      it 'should find the previously saved domain event given an id', (done) ->
+        mongoDbStore.findDomainEventsByAggregateId 23, (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
           done()
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByAggregateId [23], (err, domainEvents) ->
+      it 'should find the previously saved domain event given the id as array', (done) ->
+        mongoDbStore.findDomainEventsByAggregateId [23], (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
@@ -123,16 +122,16 @@ describe 'MongoDB Store Adapter', ->
         mongoDbStore.saveDomainEvent domainEvent
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByNameAndAggregateId 'SomethingHappened', 23, (err, domainEvents) ->
+      it 'should find the previously saved domain event given a name and an id', (done) ->
+        mongoDbStore.findDomainEventsByNameAndAggregateId 'SomethingHappened', 23, (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
           done()
 
 
-      it 'should find the previously saved domainevent', (done) ->
-        mongoDbStore.findDomainEventsByNameAndAggregateId ['SomethingHappened'], [23], (err, domainEvents) ->
+      it 'should find the previously saved domain event given the name and id as array', (done) ->
+        mongoDbStore.findDomainEventsByNameAndAggregateId ['SomethingHappened'], [23], (error, domainEvents) ->
           expect(domainEvents).to.deep.equal [
             domainEvent
           ]
@@ -141,7 +140,7 @@ describe 'MongoDB Store Adapter', ->
 
     describe '#getProjectionStore', ->
 
-      it 'should callback with the collection', ->
+      it 'should resolve with the collection', ->
         mongoDbStore.getProjectionStore 'exampleProjection'
         .then (collection) ->
           expect(collection).to.be.an.instanceof mongodb.Collection
@@ -155,10 +154,12 @@ describe 'MongoDB Store Adapter', ->
           readModel =
             id: '2a2176e0-1a52-de63-3562-4cebfd3f10e1'
             exampleKey: 'exampleValue'
-          projectionStore.insert readModel, ->
+          projectionStore.insert readModel
+          .then ->
             mongoDbStore.clearProjectionStore 'exampleProjection'
             .then ->
-              mongoDbStore.db.collection('system.namespaces').find().toArray (err, items) ->
+              mongoDbStore.db.collection('system.namespaces').find().toArray()
+              .then (items) ->
                 expect(items.length).to.equal 1
                 done()
             .catch done
@@ -168,7 +169,7 @@ describe 'MongoDB Store Adapter', ->
       it 'should resolve after removing given the collection is not available', (done) ->
         mongoDbStore.clearProjectionStore 'exampleProjection'
         .then ->
-          mongoDbStore.db.collection('system.namespaces').find().toArray (err, items) ->
+          mongoDbStore.db.collection('system.namespaces').find().toArray (error, items) ->
             expect(items.length).to.equal 0
             done()
         .catch done
