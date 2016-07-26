@@ -19,7 +19,8 @@
     "prepublish": "node_modules/.bin/gulp build"
   },
   "dependencies": {
-    "mongodb": "*"
+    "mongodb": "*",
+    "mongodb-autoincrement": "*"
   },
   "devDependencies": {
     "del": "*",

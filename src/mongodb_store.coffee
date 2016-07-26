@@ -1,4 +1,5 @@
 MongoClient = require('mongodb').MongoClient
+autoIncrement = require 'mongodb-autoincrement'
 
 class MongoDBStore
   _optionDefaults:
@@ -22,6 +23,12 @@ class MongoDBStore
       MongoClient.connect connectUri
       .then (db) =>
         @db = db
+
+        autoIncrement.setDefaults
+          collection: 'counters'
+          field: 'id'
+          step: 1
+
         resolve()
 
 
@@ -32,9 +39,18 @@ class MongoDBStore
 
 
   saveDomainEvent: (domainEvent) ->
-    @_getCollection @_domainEventsCollectionName
-    .then (collection) ->
-      collection.insert domainEvent
+    new Promise (resolve, reject) =>
+      @_getCollection @_domainEventsCollectionName
+      .then (collection) =>
+        autoIncrement.getNextSequence @db, @_domainEventsCollectionName, (error, autoIndex) ->
+          if error
+            return reject error
+
+          domainEvent.id = autoIndex
+          collection.insert domainEvent
+          .then ->
+            resolve domainEvent
+          .catch reject
 
 
   # TODO: remove this callback mess everywhere

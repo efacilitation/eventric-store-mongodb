@@ -11,8 +11,10 @@ MongoClient = mongodb.MongoClient
 
 describe 'MongoDB Store Adapter', ->
   mongoDbStore = null
+  autoIncrement = null
 
   before ->
+    autoIncrement = require 'mongodb-autoincrement'
     MongoDbStore = require './mongodb_store'
     mongoDbStore = new MongoDbStore
 
@@ -66,10 +68,47 @@ describe 'MongoDB Store Adapter', ->
 
     describe '#saveDomainEvent', ->
 
-      it 'should save the given doc', ->
+      it 'should save the given domain event', (done) ->
         mongoDbStore.saveDomainEvent domainEvent
-        .then (domainEvents) ->
-          expect(domainEvents.ops[0]._id).to.be.ok
+        .then ->
+          mongoDbStore.findDomainEventsByName 'SomethingHappened', (error, domainEvents) ->
+            expect(domainEvents).to.deep.equal [
+              domainEvent
+            ]
+            done()
+
+
+      it 'should automatically increment the id field ', ->
+        mongoDbStore.saveDomainEvent domainEvent
+        .then (domainEvent) ->
+          expect(domainEvent.id).to.equal 1
+          delete domainEvent.id
+          delete domainEvent._id
+          mongoDbStore.saveDomainEvent domainEvent
+        .then (domainEvent) ->
+          expect(domainEvent.id).to.equal 2
+          delete domainEvent.id
+          delete domainEvent._id
+          mongoDbStore.saveDomainEvent domainEvent
+        .then (domainEvent) ->
+          expect(domainEvent.id).to.equal 3
+
+
+      it 'should reject with an error given autoincrement callbacks with an error', ->
+        dummyError = new Error 'dummy'
+        sandbox.stub(autoIncrement, 'getNextSequence').yields dummyError
+        mongoDbStore.saveDomainEvent domainEvent
+        .catch (error) ->
+          expect(error).to.equal dummyError
+
+
+      it 'should reject with an error given the database rejects with an error', ->
+        dummyError = new Error 'dummy'
+        collection = insert: -> Promise.reject dummyError
+        sandbox.stub(mongoDbStore, '_getCollection').returns Promise.resolve collection
+        mongoDbStore.saveDomainEvent domainEvent
+        .catch (error) ->
+          expect(error).to.equal dummyError
 
 
     describe '#findDomainEventsByName', ->
