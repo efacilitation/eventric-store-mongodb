@@ -23,6 +23,7 @@
     "mongodb-autoincrement": "*"
   },
   "devDependencies": {
+    "eventric-store-specs": "*",
     "del": "*",
     "run-sequence": "*",
     "coffee-script": "*",

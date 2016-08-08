@@ -91,16 +91,4 @@ class MongoDBStore
         resolve collection
 
 
-  getProjectionStore: (projectionName) ->
-    @_getCollection "#{@_projectionCollectionName}.#{projectionName}"
-
-
-  clearProjectionStore: (projectionName) ->
-    new Promise (resolve, reject) =>
-      @db.dropCollection "#{@_projectionCollectionName}.#{projectionName}", (error, result) ->
-        if error and error.message isnt 'ns not found'
-          return reject error
-        resolve result
-
-
 module.exports = MongoDBStore

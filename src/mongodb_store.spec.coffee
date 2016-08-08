@@ -1,103 +1,89 @@
 require('es6-promise').polyfill()
-chai      = require 'chai'
-expect    = chai.expect
-sinon     = require 'sinon'
-sandbox   = sinon.sandbox.create()
-sinonChai = require 'sinon-chai'
+global.chai      = require 'chai'
+global.expect    = chai.expect
+global.sinon     = require 'sinon'
+global.sandbox   = sinon.sandbox.create()
+global.sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-mongodb = require('mongodb')
+eventricStoreSpecs = require 'eventric-store-specs'
+
+mongodb = require 'mongodb'
 MongoClient = mongodb.MongoClient
+autoIncrement = require 'mongodb-autoincrement'
 
-describe 'MongoDB Store Adapter', ->
-  mongoDbStore = null
-  autoIncrement = null
-
-  before ->
-    autoIncrement = require 'mongodb-autoincrement'
-    MongoDbStore = require './mongodb_store'
-    mongoDbStore = new MongoDbStore
+MongoDbStore = require './mongodb_store'
 
 
-  afterEach ->
-    sandbox.restore()
+describe 'MongoDB Store', ->
+  databases = []
+
+  beforeEach ->
+    usedDatabaseNames = [
+      'eventric'
+      'eventric_store_mongodb_specs'
+    ]
+    Promise.all usedDatabaseNames.map (usedDatabaseName) ->
+      MongoClient.connect "mongodb://127.0.0.1:27017/#{usedDatabaseName}"
+      .then (db) ->
+        databases.push db
+        db.dropDatabase()
 
 
-  describe 'given a mongo.dbInstance', ->
+  after ->
+    for database in databases
+      database.close()
+
+
+  eventricStoreSpecs.runFor
+    StoreClass: MongoDbStore
+
+    initializeCallback: (store) ->
+      options =
+        dbInstance: sandbox.stub()
+      store.initialize name: 'FakeContext'
+
+
+  describe 'Custom', ->
+
+    store = null
+
+    beforeEach ->
+      sandbox.restore()
+      store = new MongoDbStore()
+      sandbox.spy MongoClient, 'connect'
+
 
     describe '#initialize', ->
 
-      it 'should not call MongoClient.connect', ->
-        sandbox.spy MongoClient, 'connect'
+      it 'should not call MongoClient.connect given a dbInstance in the options', ->
         options =
           dbInstance: sandbox.stub()
-        mongoDbStore.initialize name: 'exampleContext', options
+        store.initialize name: 'exampleContext', options
         .then ->
           expect(MongoClient.connect).to.not.have.been.called
 
 
-  describe 'given no mongo.dbInstance', ->
-
-    options = null
-    domainEvent =
-      name: 'SomethingHappened'
-      aggregate:
-        id: 23
-        name: 'Example'
-
-    before ->
-      options =
-        database: 'eventric_store_mongodb_specs'
-      sandbox.spy MongoClient, 'connect'
-      mongoDbStore.initialize name: 'exampleContext', options
-
-
-    beforeEach ->
-      mongoDbStore.db.dropDatabase()
-
-
-    after ->
-      mongoDbStore.db.close()
-
-
-    describe '#initialize', ->
-
-      it 'should call the MongoClient.connect with the correct options', ->
-        expect(MongoClient.connect).to.have.been.calledWith 'mongodb://127.0.0.1:27017/eventric_store_mongodb_specs'
+      it 'should call MongoClient.connect with the correct options given no dbInstance in the options', ->
+        options =
+          database: 'eventric_store_mongodb_specs'
+        store.initialize name: 'exampleContext', options
+        .then ->
+          expect(MongoClient.connect).to.have.been.calledWith 'mongodb://127.0.0.1:27017/eventric_store_mongodb_specs'
 
 
     describe '#saveDomainEvent', ->
 
-      it 'should save the given domain event', (done) ->
-        mongoDbStore.saveDomainEvent domainEvent
-        .then ->
-          mongoDbStore.findDomainEventsByName 'SomethingHappened', (error, domainEvents) ->
-            expect(domainEvents).to.deep.equal [
-              domainEvent
-            ]
-            done()
-
-
-      it 'should automatically increment the id field ', ->
-        mongoDbStore.saveDomainEvent domainEvent
-        .then (domainEvent) ->
-          expect(domainEvent.id).to.equal 1
-          delete domainEvent.id
-          delete domainEvent._id
-          mongoDbStore.saveDomainEvent domainEvent
-        .then (domainEvent) ->
-          expect(domainEvent.id).to.equal 2
-          delete domainEvent.id
-          delete domainEvent._id
-          mongoDbStore.saveDomainEvent domainEvent
-        .then (domainEvent) ->
-          expect(domainEvent.id).to.equal 3
+      beforeEach ->
+        options =
+          database: 'eventric_store_mongodb_specs'
+        store.initialize name: 'exampleContext', options
 
 
       it 'should reject with an error given autoincrement callbacks with an error', ->
         dummyError = new Error 'dummy'
         sandbox.stub(autoIncrement, 'getNextSequence').yields dummyError
-        mongoDbStore.saveDomainEvent domainEvent
+        store.saveDomainEvent {}
         .catch (error) ->
           expect(error).to.equal dummyError
 
@@ -105,110 +91,7 @@ describe 'MongoDB Store Adapter', ->
       it 'should reject with an error given the database rejects with an error', ->
         dummyError = new Error 'dummy'
         collection = insert: -> Promise.reject dummyError
-        sandbox.stub(mongoDbStore, '_getCollection').returns Promise.resolve collection
-        mongoDbStore.saveDomainEvent domainEvent
+        sandbox.stub(store, '_getCollection').returns Promise.resolve collection
+        store.saveDomainEvent {}
         .catch (error) ->
           expect(error).to.equal dummyError
-
-
-    describe '#findDomainEventsByName', ->
-
-      beforeEach ->
-        mongoDbStore.saveDomainEvent domainEvent
-
-
-      it 'should find the previously saved domain event given the name as string', (done) ->
-        mongoDbStore.findDomainEventsByName 'SomethingHappened', (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-      it 'should find the previously saved domain event given the name as array', (done) ->
-        mongoDbStore.findDomainEventsByName ['SomethingHappened'], (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-    describe '#findDomainEventsByAggregateId', ->
-
-      beforeEach ->
-        mongoDbStore.saveDomainEvent domainEvent
-
-
-      it 'should find the previously saved domain event given an id', (done) ->
-        mongoDbStore.findDomainEventsByAggregateId 23, (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-      it 'should find the previously saved domain event given the id as array', (done) ->
-        mongoDbStore.findDomainEventsByAggregateId [23], (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-    describe '#findDomainEventsByNameAndAggregateId', ->
-
-      beforeEach ->
-        mongoDbStore.saveDomainEvent domainEvent
-
-
-      it 'should find the previously saved domain event given a name and an id', (done) ->
-        mongoDbStore.findDomainEventsByNameAndAggregateId 'SomethingHappened', 23, (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-      it 'should find the previously saved domain event given the name and id as array', (done) ->
-        mongoDbStore.findDomainEventsByNameAndAggregateId ['SomethingHappened'], [23], (error, domainEvents) ->
-          expect(domainEvents).to.deep.equal [
-            domainEvent
-          ]
-          done()
-
-
-    describe '#getProjectionStore', ->
-
-      it 'should resolve with the collection', ->
-        mongoDbStore.getProjectionStore 'exampleProjection'
-        .then (collection) ->
-          expect(collection).to.be.an.instanceof mongodb.Collection
-
-
-    describe '#clearProjectionStore', ->
-
-      it 'should resolve after removing given the collection is available', (done) ->
-        mongoDbStore.getProjectionStore 'exampleProjection'
-        .then (projectionStore) ->
-          readModel =
-            id: '2a2176e0-1a52-de63-3562-4cebfd3f10e1'
-            exampleKey: 'exampleValue'
-          projectionStore.insert readModel
-          .then ->
-            mongoDbStore.clearProjectionStore 'exampleProjection'
-            .then ->
-              mongoDbStore.db.collection('system.namespaces').find().toArray()
-              .then (items) ->
-                expect(items.length).to.equal 1
-                done()
-            .catch done
-        .catch done
-
-
-      it 'should resolve after removing given the collection is not available', (done) ->
-        mongoDbStore.clearProjectionStore 'exampleProjection'
-        .then ->
-          mongoDbStore.db.collection('system.namespaces').find().toArray (error, items) ->
-            expect(items.length).to.equal 0
-            done()
-        .catch done
