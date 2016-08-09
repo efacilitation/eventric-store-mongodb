@@ -19,24 +19,24 @@
     "prepublish": "node_modules/.bin/gulp build"
   },
   "dependencies": {
-    "mongodb": "*",
-    "mongodb-autoincrement": "*"
+    "mongodb": "2.2.5",
+    "mongodb-autoincrement": "1.0.1"
   },
   "devDependencies": {
-    "eventric-store-specs": "*",
-    "del": "*",
-    "run-sequence": "*",
-    "coffee-script": "*",
-    "chai": "*",
-    "gulp": "*",
-    "gulp-coffee": "*",
-    "gulp-util": "*",
-    "gulp-mocha": "*",
-    "gulp-watch": "*",
-    "gulp-bump": "*",
-    "sinon": "*",
-    "sinon-chai": "*",
-    "mockery": "*",
-    "es6-promise": "*"
+    "eventric-store-specs": "1.0.1",
+    "del": "2.2.1",
+    "run-sequence": "1.2.2",
+    "coffee-script": "1.10.0",
+    "chai": "3.5.0",
+    "gulp": "3.9.1",
+    "gulp-coffee": "2.3.2",
+    "gulp-util": "3.0.7",
+    "gulp-mocha": "3.0.0",
+    "gulp-watch": "4.3.9",
+    "gulp-bump": "2.2.0",
+    "sinon": "1.17.5",
+    "sinon-chai": "2.8.0",
+    "mockery": "1.7.0",
+    "es6-promise": "3.2.1"
   }
 }
