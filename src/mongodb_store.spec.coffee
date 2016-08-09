@@ -1,8 +1,8 @@
 require('es6-promise').polyfill()
-global.chai      = require 'chai'
-global.expect    = chai.expect
-global.sinon     = require 'sinon'
-global.sandbox   = sinon.sandbox.create()
+global.chai = require 'chai'
+global.expect = chai.expect
+global.sinon = require 'sinon'
+global.sandbox = sinon.sandbox.create()
 global.sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
