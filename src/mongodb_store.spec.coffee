@@ -6,12 +6,10 @@ global.sandbox = sinon.sandbox.create()
 global.sinonChai = require 'sinon-chai'
 chai.use sinonChai
 
-eventricStoreSpecs = require 'eventric-store-specs'
-
 MongoClient = require('mongodb').MongoClient
 
+eventricStoreSpecs = require 'eventric-store-specs'
 MongoDbStore = require './mongodb_store'
-
 
 describe 'Integration', ->
   store = null
@@ -23,8 +21,7 @@ describe 'Integration', ->
     store.initialize contextFake
     .then ->
       store.db.dropDatabase()
-      # TODO: Use store.destroy() if available
-      store.db.close()
+      return store.destroy()
 
 
   eventricStoreSpecs.runFor
@@ -42,26 +39,26 @@ describe 'MongoDB store', ->
 
 
   afterEach ->
-    # TODO: Use store.destroy() if available
-    store.db?.close?()
     sandbox.restore()
+    return store.destroy()
 
 
   describe '#initialize', ->
 
-    beforeEach ->
-      sandbox.stub(MongoClient, 'connect').returns Promise.resolve()
-
-
     it 'should not call MongoClient.connect given a dbInstance in the options', ->
-      options =
-        dbInstance: {}
-      store.initialize contextFake, options
-      .then ->
-        expect(MongoClient.connect).to.not.have.been.called
+      MongoClient.connect 'mongodb://127.0.0.1:27017/eventric'
+      .then (db) =>
+        sandbox.spy MongoClient, 'connect'
+        options =
+          dbInstance: db
+        store.initialize contextFake, options
+        .then ->
+          db.close()
+          expect(MongoClient.connect).to.not.have.been.called
 
 
     it 'should call MongoClient.connect with the correct options given no dbInstance in the options', ->
+      sandbox.spy MongoClient, 'connect'
       options =
         database: 'eventric_store_mongodb_specs'
       store.initialize contextFake, options
@@ -137,3 +134,16 @@ describe 'MongoDB store', ->
       store.saveDomainEvent {}
       .catch (error) ->
         expect(error).to.equal errorFake
+
+
+  describe '#destroy', ->
+
+    beforeEach ->
+      store.initialize contextFake
+
+
+    it 'should close the database connection', ->
+      sandbox.spy store.db, 'close'
+      store.destroy()
+      .then ->
+        expect(store.db.close).to.have.been.calledOnce

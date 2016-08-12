@@ -12,7 +12,9 @@ class MongoDBStore
 
 
   initialize: (@_context, options = {}) ->
-    new Promise (resolve) =>
+    # TODO: Make db private but allow to request it to access the store directly if needed
+    @db = null
+    @_initializePromise = new Promise (resolve) =>
       @_defaults options, @_optionDefaults
       @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
 
@@ -59,8 +61,8 @@ class MongoDBStore
     @_getCollection 'eventSourcingConfig'
     .then (collection) ->
       collection.findAndModify query, null, document, options
-    .then (result) ->
-      return result.value.currentDomainEventId
+    .then (findAndModifyWriteOpResultObject) ->
+      return findAndModifyWriteOpResultObject.value.currentDomainEventId
     .catch (error) =>
       duplicateKeyError = 11000
       if error.code is duplicateKeyError
@@ -99,11 +101,19 @@ class MongoDBStore
 
 
   _getCollection: (collectionName) ->
-    new Promise (resolve, reject) =>
-      @db.collection collectionName, (error, collection) ->
-        if error
-          return reject error
-        resolve collection
+    @_initializePromise
+    .then =>
+      new Promise (resolve, reject) =>
+        @db.collection collectionName, (error, collection) ->
+          if error
+            return reject error
+          resolve collection
+
+
+  destroy: ->
+    @_initializePromise
+    .then =>
+      @db.close()
 
 
 module.exports = MongoDBStore
