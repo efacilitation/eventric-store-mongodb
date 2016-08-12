@@ -9,7 +9,6 @@ chai.use sinonChai
 eventricStoreSpecs = require 'eventric-store-specs'
 
 MongoClient = require('mongodb').MongoClient
-autoIncrement = require 'mongodb-autoincrement'
 
 MongoDbStore = require './mongodb_store'
 
@@ -24,6 +23,9 @@ describe 'Integration', ->
     store.initialize contextFake
     .then ->
       store.db.dropDatabase()
+      # TODO: Use store.destroy() if available
+      store.db.close()
+
 
   eventricStoreSpecs.runFor
     StoreClass: MongoDbStore
@@ -40,6 +42,8 @@ describe 'MongoDB store', ->
 
 
   afterEach ->
+    # TODO: Use store.destroy() if available
+    store.db?.close?()
     sandbox.restore()
 
 
@@ -71,18 +75,65 @@ describe 'MongoDB store', ->
       store.initialize contextFake
 
 
-    it 'should reject with an error given autoincrement callbacks with an error', ->
+    it 'should reject with an error given an error occurs by getting the next domain event id', ->
       errorFake = new Error 'errorFake'
-      sandbox.stub(autoIncrement, 'getNextSequence').yields errorFake
+      eventSourcingConfigCollectionFake =
+        findAndModify: sandbox.stub().returns Promise.reject errorFake
+
+      collectionStub = sandbox.stub store.db, 'collection'
+      collectionStub.withArgs('eventSourcingConfig', sandbox.match.func).yields null, eventSourcingConfigCollectionFake
+
       store.saveDomainEvent {}
       .catch (error) ->
         expect(error).to.equal errorFake
 
 
-    it 'should reject with an error given the database rejects with an error', ->
+    it 'should retry getting the next domain event id given an duplicate key error occurs by getting the next domain event id', ->
+      findAndModifyStub = sandbox.stub()
+
       errorFake = new Error 'errorFake'
-      collection = insert: -> Promise.reject errorFake
-      sandbox.stub(store, '_getCollection').returns Promise.resolve collection
+      errorFake.code = 11000
+      findAndModifyStub.onCall(0).returns Promise.reject errorFake
+
+      eventSourcingConfigResultFake =
+        value:
+          currentDomainEventId: 1
+      findAndModifyStub.onCall(1).returns Promise.resolve eventSourcingConfigResultFake
+
+      eventSourcingConfigCollectionFake =
+        findAndModify: findAndModifyStub
+
+      collectionStub = sandbox.stub store.db, 'collection'
+      collectionStub.withArgs('eventSourcingConfig', sandbox.match.func).yields null, eventSourcingConfigCollectionFake
+
+      fakeDomainEvent =
+        name: 'EventName'
+      insertWriteOpResultObjectFake =
+        ops: [
+          name: 'EventName'
+        ]
+      domainEventsCollectionFake =
+        insert: sandbox.stub().returns Promise.resolve insertWriteOpResultObjectFake
+      collectionStub.withArgs("#{contextFake.name}.DomainEvents", sandbox.match.func).yields null, domainEventsCollectionFake
+
+      store.saveDomainEvent fakeDomainEvent
+      .then (domainEvent) ->
+        expect(domainEvent.name).to.be.equal fakeDomainEvent.name
+
+
+    it 'should reject with an error given the database rejects with an error', ->
+      eventSourcingConfigResultFake =
+        value:
+          currentDomainEventId: 1
+      eventSourcingConfigCollectionFake =
+        findAndModify: sandbox.stub().returns Promise.resolve eventSourcingConfigResultFake
+
+      collectionStub = sandbox.stub store.db, 'collection'
+      collectionStub.withArgs('eventSourcingConfig', sandbox.match.func).yields null, eventSourcingConfigCollectionFake
+
+      errorFake = new Error 'errorFake'
+      collectionStub.withArgs("#{contextFake.name}.DomainEvents", sandbox.match.func).yields errorFake
+
       store.saveDomainEvent {}
       .catch (error) ->
         expect(error).to.equal errorFake

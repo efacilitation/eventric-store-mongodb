@@ -1,5 +1,6 @@
+# TODO: Remove callback everywhere
+
 MongoClient = require('mongodb').MongoClient
-autoIncrement = require 'mongodb-autoincrement'
 
 class MongoDBStore
   _optionDefaults:
@@ -10,11 +11,10 @@ class MongoDBStore
     dbInstance: null
 
 
-  initialize: (@_context, [options]...) ->
+  initialize: (@_context, options = {}) ->
     new Promise (resolve) =>
-      @_defaults (options ?= {}), @_optionDefaults
+      @_defaults options, @_optionDefaults
       @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
-      @_projectionCollectionName   = "#{@_context.name}.Projection"
 
       if options.dbInstance
         @db = options.dbInstance
@@ -24,12 +24,6 @@ class MongoDBStore
       MongoClient.connect connectUri
       .then (db) =>
         @db = db
-
-        autoIncrement.setDefaults
-          collection: 'counters'
-          field: 'id'
-          step: 1
-
         resolve()
 
 
@@ -40,24 +34,44 @@ class MongoDBStore
 
 
   saveDomainEvent: (domainEvent) ->
-    new Promise (resolve, reject) =>
+    @_getNextDomainEventId()
+    .then (domainEventId) =>
+      # TODO: we should not modify input arguments in order to keep the code side effects free
+      domainEvent.id = domainEventId
       @_getCollection @_domainEventsCollectionName
-      .then (collection) =>
-        autoIncrement.getNextSequence @db, @_domainEventsCollectionName, (error, autoIndex) ->
-          if error
-            return reject error
-
-          domainEvent.id = autoIndex
-          collection.insert domainEvent
-          .then ->
-            resolve domainEvent
-          .catch reject
+    .then (collection) ->
+      collection.insert domainEvent
+    .then (insertWriteOpResultObject) ->
+      domainEvent = insertWriteOpResultObject.ops[0]
+      return domainEvent
 
 
-  # TODO: remove this callback mess everywhere
-  findDomainEventsByName: (names, callback) ->
-    names = [names] if names not instanceof Array
-    query = 'name': $in: names
+  _getNextDomainEventId: ->
+    query =
+      _id: 'domainEventSequence'
+    document =
+      $inc:
+        currentDomainEventId: 1
+    options =
+      upsert: true
+      new: true
+
+    @_getCollection 'eventSourcingConfig'
+    .then (collection) ->
+      collection.findAndModify query, null, document, options
+    .then (result) ->
+      return result.value.currentDomainEventId
+    .catch (error) =>
+      duplicateKeyError = 11000
+      if error.code is duplicateKeyError
+        return @_getNextDomainEventId()
+
+      throw error
+
+
+  findDomainEventsByName: (domainEventNames, callback) ->
+    domainEventNames = [domainEventNames] if domainEventNames not instanceof Array
+    query = 'name': $in: domainEventNames
     @_find query, callback
 
 
@@ -67,11 +81,11 @@ class MongoDBStore
     @_find query, callback
 
 
-  findDomainEventsByNameAndAggregateId: (names, aggregateIds, callback) ->
-    names = [names] if names not instanceof Array
+  findDomainEventsByNameAndAggregateId: (domainEventNames, aggregateIds, callback) ->
+    domainEventNames = [domainEventNames] if domainEventNames not instanceof Array
     aggregateIds = [aggregateIds] if aggregateIds not instanceof Array
     query =
-      'name': $in: names
+      'name': $in: domainEventNames
       'aggregate.id': $in: aggregateIds
     @_find query, callback
 
@@ -80,8 +94,8 @@ class MongoDBStore
     @_getCollection @_domainEventsCollectionName
     .then (collection) ->
       collection.find(query).toArray()
-      .then (results) ->
-        callback null, results
+    .then (results) ->
+      callback null, results
 
 
   _getCollection: (collectionName) ->
