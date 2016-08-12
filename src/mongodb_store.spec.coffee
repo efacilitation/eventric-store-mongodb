@@ -72,7 +72,7 @@ describe 'MongoDB store', ->
       store.initialize contextFake
 
 
-    it 'should reject with an error given an error occurs by getting the next domain event id', ->
+    it 'should reject with an error given an error occurs while getting the next domain event id', ->
       errorFake = new Error 'errorFake'
       eventSourcingConfigCollectionFake =
         findAndModify: sandbox.stub().returns Promise.reject errorFake
@@ -85,7 +85,7 @@ describe 'MongoDB store', ->
         expect(error).to.equal errorFake
 
 
-    it 'should retry getting the next domain event id given an duplicate key error occurs by getting the next domain event id', ->
+    it 'should retry getting the next domain event id given a duplicate key error while getting the next domain event id', ->
       findAndModifyStub = sandbox.stub()
 
       errorFake = new Error 'errorFake'
@@ -100,22 +100,19 @@ describe 'MongoDB store', ->
       eventSourcingConfigCollectionFake =
         findAndModify: findAndModifyStub
 
-      collectionStub = sandbox.stub store.db, 'collection'
-      collectionStub.withArgs('eventSourcingConfig', sandbox.match.func).yields null, eventSourcingConfigCollectionFake
+      originalCollectionFunction = store.db.collection
+      sandbox.stub store.db, 'collection', (collectionName, callback) ->
+        if collectionName is 'eventSourcingConfig'
+          callback null, eventSourcingConfigCollectionFake
+        originalCollectionFunction.call store.db, collectionName, callback
 
       fakeDomainEvent =
         name: 'EventName'
-      insertWriteOpResultObjectFake =
-        ops: [
-          name: 'EventName'
-        ]
-      domainEventsCollectionFake =
-        insert: sandbox.stub().returns Promise.resolve insertWriteOpResultObjectFake
-      collectionStub.withArgs("#{contextFake.name}.DomainEvents", sandbox.match.func).yields null, domainEventsCollectionFake
 
       store.saveDomainEvent fakeDomainEvent
       .then (domainEvent) ->
-        expect(domainEvent.name).to.be.equal fakeDomainEvent.name
+        expect(domainEvent.id).to.equal 1
+        expect(domainEvent.name).to.equal fakeDomainEvent.name
 
 
     it 'should reject with an error given the database rejects with an error', ->
