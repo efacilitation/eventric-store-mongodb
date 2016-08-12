@@ -1,6 +1,6 @@
 {
   "name": "eventric-store-mongodb",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "eventric mongodb store adapter",
   "main": "build/src/mongodb_store.js",
   "scripts": {
