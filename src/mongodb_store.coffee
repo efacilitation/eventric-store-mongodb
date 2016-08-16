@@ -60,6 +60,8 @@ class MongoDBStore
 
     @_getCollection 'eventSourcingConfig'
     .then (collection) ->
+      # TODO: findAndModify is deprecated: http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#findAndModify
+      # Use findOneAndUpdate: http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#findOneAndUpdate
       collection.findAndModify query, null, document, options
     .then (findAndModifyWriteOpResultObject) ->
       return findAndModifyWriteOpResultObject.value.currentDomainEventId
