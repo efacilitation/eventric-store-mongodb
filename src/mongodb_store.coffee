@@ -14,7 +14,7 @@ class MongoDBStore
   initialize: (@_context, options = {}) ->
     # TODO: Make db private but allow to request it to access the store directly if needed
     @db = null
-    @_initializePromise = new Promise (resolve) =>
+    @_initializePromise = new Promise (resolve, reject) =>
       @_defaults options, @_optionDefaults
       @_domainEventsCollectionName = "#{@_context.name}.DomainEvents"
 
@@ -27,6 +27,9 @@ class MongoDBStore
       .then (db) =>
         @db = db
         resolve()
+      .catch reject
+
+    return @_initializePromise
 
 
   _defaults: (options, optionDefaults) ->
@@ -58,7 +61,7 @@ class MongoDBStore
       upsert: true
       new: true
 
-    @_getCollection 'eventSourcingConfig'
+    return @_getCollection 'eventSourcingConfig'
     .then (collection) ->
       # TODO: findAndModify is deprecated: http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#findAndModify
       # Use findOneAndUpdate: http://mongodb.github.io/node-mongodb-native/2.2/api/Collection.html#findOneAndUpdate
